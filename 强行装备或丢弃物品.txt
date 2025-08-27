@@ -1,0 +1,143 @@
+local DropGUI = Instance.new("ScreenGui")
+local main = Instance.new("Frame")
+local DropTool = Instance.new("TextButton")
+local Equip = Instance.new("TextButton")
+local CloseButton = Instance.new("TextButton") 
+
+DropGUI.Name = "DropGUI"
+DropGUI.Parent = game.CoreGui
+DropGUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+main.Name = "main"
+main.Parent = DropGUI
+main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+main.BackgroundTransparency = 0.2
+main.Position = UDim2.new(0.08, 0, 0.2, 0)
+main.Size = UDim2.new(0, 120, 0, 60)
+main.Active = true
+main.Draggable = true
+
+local UICorner = Instance.new("UICorner")
+UICorner.Parent = main
+UICorner.CornerRadius = UDim.new(0, 6)
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Parent = main
+UIStroke.Color = Color3.fromRGB(100, 100, 100)
+UIStroke.Thickness = 1
+UIStroke.Transparency = 0.7
+
+CloseButton.Name = "CloseButton"
+CloseButton.Parent = main
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+CloseButton.BackgroundTransparency = 0.8
+CloseButton.Position = UDim2.new(0.85, 0, 0.05, 0)
+CloseButton.Size = UDim2.new(0, 15, 0, 15)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "×"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 14
+CloseButton.TextWrapped = true
+CloseButton.ZIndex = 2
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.Parent = CloseButton
+CloseCorner.CornerRadius = UDim.new(1, 0) 
+
+CloseButton.MouseButton1Click:Connect(function()
+    DropGUI:Destroy()
+end)
+
+CloseButton.MouseEnter:Connect(function()
+    game:GetService("TweenService"):Create(
+        CloseButton,
+        TweenInfo.new(0.2),
+        {BackgroundTransparency = 0.6}
+    ):Play()
+end)
+
+CloseButton.MouseLeave:Connect(function()
+    game:GetService("TweenService"):Create(
+        CloseButton,
+        TweenInfo.new(0.2),
+        {BackgroundTransparency = 0.8}
+    ):Play()
+end)
+
+DropTool.Name = "DropTool"
+DropTool.Parent = main
+DropTool.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
+DropTool.Position = UDim2.new(0.1, 0, 0.25, 0)
+DropTool.Size = UDim2.new(0, 45, 0, 30)
+DropTool.Font = Enum.Font.GothamSemibold
+DropTool.Text = "丢弃"
+DropTool.TextColor3 = Color3.fromRGB(255, 255, 255)
+DropTool.TextSize = 14
+DropTool.TextWrapped = true
+DropTool.MouseButton1Down:Connect(function()
+    local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+    if tool then
+        tool.Parent = game.Workspace
+    end
+end)
+
+Equip.Name = "Equip"
+Equip.Parent = main
+Equip.BackgroundColor3 = Color3.fromRGB(60, 140, 60)
+Equip.Position = UDim2.new(0.55, 0, 0.25, 0)
+Equip.Size = UDim2.new(0, 45, 0, 30)
+Equip.Font = Enum.Font.GothamSemibold
+Equip.Text = "装备"
+Equip.TextColor3 = Color3.fromRGB(255, 255, 255)
+Equip.TextSize = 14
+Equip.TextWrapped = true
+Equip.MouseButton1Down:Connect(function()
+    local tool = game.Players.LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
+    if tool then
+        tool.Parent = game.Players.LocalPlayer.Character
+    end
+end)
+
+local DropToolCorner = Instance.new("UICorner")
+DropToolCorner.Parent = DropTool
+DropToolCorner.CornerRadius = UDim.new(0, 4)
+
+local EquipCorner = Instance.new("UICorner")
+EquipCorner.Parent = Equip
+EquipCorner.CornerRadius = UDim.new(0, 4)
+
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+main.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = main.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+main.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
