@@ -1,0 +1,256 @@
+local DropGUI = Instance.new("ScreenGui")
+local main = Instance.new("Frame")
+local btnAuto = Instance.new("TextButton")
+local btnNoclip = Instance.new("TextButton")
+local btnSpider = Instance.new("TextButton")
+local btnWebPull = Instance.new("TextButton")
+local btnWebPhys = Instance.new("TextButton")
+local btnDeleteWeb = Instance.new("TextButton")
+local CloseButton = Instance.new("TextButton")
+
+DropGUI.Name = "SpiderUI"
+DropGUI.Parent = game.CoreGui
+DropGUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+main.Name = "main"
+main.Parent = DropGUI
+main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+main.BackgroundTransparency = 0.2
+main.Position = UDim2.new(0.08, 0, 0.2, 0)
+main.Size = UDim2.new(0, 220, 0, 300)
+main.Active = true
+main.Draggable = true
+
+local UICorner = Instance.new("UICorner")
+UICorner.Parent = main
+UICorner.CornerRadius = UDim.new(0, 6)
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Parent = main
+UIStroke.Color = Color3.fromRGB(100, 100, 100)
+UIStroke.Thickness = 1
+UIStroke.Transparency = 0.7
+
+CloseButton.Name = "CloseButton"
+CloseButton.Parent = main
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+CloseButton.BackgroundTransparency = 0.8
+CloseButton.Position = UDim2.new(0.9, 0, 0.02, 0)
+CloseButton.Size = UDim2.new(0, 20, 0, 20)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "×"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 14
+CloseButton.TextWrapped = true
+CloseButton.ZIndex = 2
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.Parent = CloseButton
+CloseCorner.CornerRadius = UDim.new(1, 0)
+
+local function createButton(name, text, yPos, color)
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Parent = main
+    btn.Size = UDim2.new(0.9, 0, 0, 40)
+    btn.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn.Text = text
+    btn.BackgroundColor3 = color
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextSize = 14
+    btn.TextWrapped = true
+    
+    local corner = Instance.new("UICorner")
+    corner.Parent = btn
+    corner.CornerRadius = UDim.new(0, 4)
+    
+    return btn
+end
+
+btnAuto = createButton("AutoWalk", "自动行走: OFF", 30, Color3.fromRGB(70, 70, 70))
+btnNoclip = createButton("Noclip", "穿墙模式: OFF", 80, Color3.fromRGB(70, 70, 70))
+btnSpider = createButton("SpiderMode", "蜘蛛侠模式: OFF", 130, Color3.fromRGB(70, 70, 70))
+btnWebPull = createButton("WebPull", "蛛网牵引: OFF", 180, Color3.fromRGB(70, 70, 70))
+btnWebPhys = createButton("WebPhysics", "蛛网物理: OFF", 230, Color3.fromRGB(70, 70, 70))
+btnDeleteWeb = createButton("DeleteWeb", "删除蛛网", 280, Color3.fromRGB(200, 60, 60))
+
+local autoPull, noclip, spiderMode, webPhysics = false, false, false, false
+local targetPos, currentWeb = nil, nil
+local webConnections = {}
+
+local function createWeb(startPos, endPos)
+    if currentWeb then 
+        currentWeb:Destroy() 
+        currentWeb = nil
+    end
+    
+    local webFolder = Instance.new("Folder", workspace)
+    currentWeb = webFolder
+    
+    local p1 = Instance.new("Part", webFolder)
+    p1.Anchored = true
+    p1.CanCollide = false
+    p1.Transparency = 1
+    p1.CFrame = CFrame.new(startPos)
+    
+    local p2 = Instance.new("Part", webFolder)
+    p2.Anchored = true
+    p2.CanCollide = false
+    p2.Transparency = 1
+    p2.CFrame = CFrame.new(endPos)
+    
+    local a1 = Instance.new("Attachment", p1)
+    local a2 = Instance.new("Attachment", p2)
+    
+    local beam = Instance.new("Beam", p1)
+    beam.Attachment0 = a1
+    beam.Attachment1 = a2
+    beam.Width0 = 2
+    beam.Width1 = 2
+    beam.LightEmission = 1
+    beam.Texture = "rbxassetid://446111271"
+    beam.TextureMode = Enum.TextureMode.Stretch
+    beam.TextureLength = 1
+    beam.TextureSpeed = 2
+    beam.Color = ColorSequence.new(Color3.new(1, 1, 1))
+    beam.Transparency = NumberSequence.new(0.05)
+    
+    
+    table.insert(webConnections, beam)
+    table.insert(webConnections, p1)
+    table.insert(webConnections, p2)
+    table.insert(webConnections, a1)
+    table.insert(webConnections, a2)
+end
+
+local function useWeb()
+    if not targetPos then return end
+    
+    local char = game.Players.LocalPlayer.Character
+    if not char then return end
+    
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    
+    createWeb(root.Position, targetPos)
+    
+    if webPhysics then
+        local bv = Instance.new("BodyVelocity", root)
+        bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+        bv.Velocity = (targetPos - root.Position).Unit * 100
+        game:GetService("Debris"):AddItem(bv, 0.5)
+        table.insert(webConnections, bv)
+    elseif autoPull then
+        local tw = game:GetService("TweenService"):Create(root, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {
+            CFrame = CFrame.new(targetPos + Vector3.new(0, 3, 0))
+        })
+        tw:Play()
+        table.insert(webConnections, tw)
+    end
+end
+
+local function cleanupWebEffects()
+    for _, conn in ipairs(webConnections) do
+        if conn:IsA("RBXScriptConnection") then
+            conn:Disconnect()
+        else
+            conn:Destroy()
+        end
+    end
+    webConnections = {}
+    
+    if currentWeb then
+        currentWeb:Destroy()
+        currentWeb = nil
+    end
+end
+
+btnAuto.MouseButton1Click:Connect(function()
+    autoPull = not autoPull
+    btnAuto.Text = "自动行走: " .. (autoPull and "ON" or "OFF")
+    btnAuto.BackgroundColor3 = autoPull and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(70, 70, 70)
+    if autoPull then webPhysics = false end
+end)
+
+btnNoclip.MouseButton1Click:Connect(function()
+    noclip = not noclip
+    btnNoclip.Text = "穿墙模式: " .. (noclip and "ON" or "OFF")
+    btnNoclip.BackgroundColor3 = noclip and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(70, 70, 70)
+end)
+
+btnSpider.MouseButton1Click:Connect(function()
+    spiderMode = not spiderMode
+    btnSpider.Text = "蜘蛛侠模式: " .. (spiderMode and "ON" or "OFF")
+    btnSpider.BackgroundColor3 = spiderMode and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(70, 70, 70)
+    btnWebPull.Visible = spiderMode
+    btnWebPhys.Visible = spiderMode
+end)
+
+btnWebPull.MouseButton1Click:Connect(function()
+    autoPull = not autoPull
+    webPhysics = false
+    btnWebPull.Text = "蛛网牵引: " .. (autoPull and "ON" or "OFF")
+    btnWebPull.BackgroundColor3 = autoPull and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(70, 70, 70)
+    btnWebPhys.Text = "蛛网物理: OFF"
+    btnWebPhys.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+end)
+
+btnWebPhys.MouseButton1Click:Connect(function()
+    webPhysics = not webPhysics
+    autoPull = false
+    btnWebPhys.Text = "蛛网物理: " .. (webPhysics and "ON" or "OFF")
+    btnWebPhys.BackgroundColor3 = webPhysics and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(70, 70, 70)
+    btnWebPull.Text = "蛛网牵引: OFF"
+    btnWebPull.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+end)
+
+btnDeleteWeb.MouseButton1Click:Connect(function()
+    cleanupWebEffects()
+end)
+
+CloseButton.MouseButton1Click:Connect(function()
+    cleanupWebEffects()
+    DropGUI:Destroy()
+end)
+
+game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
+    if processed then return end
+    
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        local camera = workspace.CurrentCamera
+        local ray = camera:ScreenPointToRay(input.Position.X, input.Position.Y)
+        
+        local rp = RaycastParams.new()
+        rp.FilterDescendantsInstances = {game.Players.LocalPlayer.Character}
+        rp.FilterType = Enum.RaycastFilterType.Blacklist
+        
+        local hit = workspace:Raycast(ray.Origin, ray.Direction * 500, rp)
+        if hit then
+            targetPos = hit.Position
+            useWeb()
+        end
+    end
+end)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    local char = game.Players.LocalPlayer.Character
+    if char and noclip then
+        for _, p in pairs(char:GetDescendants()) do
+            if p:IsA("BasePart") then
+                p.CanCollide = false
+            end
+        end
+    end
+end)
+
+game.Players.LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(1)
+    if targetPos then
+        task.wait(0.5)
+        useWeb()
+    end
+end)
+
+btnWebPull.Visible = false
+btnWebPhys.Visible = false
