@@ -1,0 +1,211 @@
+local FlipGUI = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local CloseButton = Instance.new("TextButton")
+
+FlipGUI.Name = "FlipControls"
+FlipGUI.Parent = game.CoreGui
+FlipGUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = FlipGUI
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BackgroundTransparency = 0.2
+MainFrame.Position = UDim2.new(0.08, 0, 0.2, 0)
+MainFrame.Size = UDim2.new(0, 220, 0, 300)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+local UICorner = Instance.new("UICorner")
+UICorner.Parent = MainFrame
+UICorner.CornerRadius = UDim.new(0, 6)
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Parent = MainFrame
+UIStroke.Color = Color3.fromRGB(100, 100, 100)
+UIStroke.Thickness = 1
+UIStroke.Transparency = 0.7
+
+CloseButton.Name = "CloseButton"
+CloseButton.Parent = MainFrame
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+CloseButton.BackgroundTransparency = 0.8
+CloseButton.Position = UDim2.new(0.9, 0, 0.02, 0)
+CloseButton.Size = UDim2.new(0, 20, 0, 20)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "×"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 14
+CloseButton.TextWrapped = true
+CloseButton.ZIndex = 2
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.Parent = CloseButton
+CloseCorner.CornerRadius = UDim.new(1, 0)
+
+local function createButton(name, text, yPos, color)
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Parent = MainFrame
+    btn.Size = UDim2.new(0.9, 0, 0, 40)
+    btn.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn.Text = text
+    btn.BackgroundColor3 = color
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextSize = 14
+    btn.TextWrapped = true
+    
+    local corner = Instance.new("UICorner")
+    corner.Parent = btn
+    corner.CornerRadius = UDim.new(0, 4)
+    
+    return btn
+end
+
+local FrontflipKey = Enum.KeyCode.Z
+local BackflipKey = Enum.KeyCode.X
+local AirjumpKey = Enum.KeyCode.C
+
+local Players = game:GetService("Players")
+local ContextActionService = game:GetService("ContextActionService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local localPlayer = Players.LocalPlayer
+if not localPlayer then return end
+
+local h = 0.0174533
+
+local function doFrontflip()
+    local character = localPlayer.Character
+    if not character then return end
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not humanoid or not hrp or humanoid:GetState() == Enum.HumanoidStateType.Dead then return end
+
+    humanoid:ChangeState("Jumping")
+    task.wait()
+    humanoid.Sit = true
+    for i = 1, 360 do 
+        task.delay(i/720, function()
+            if humanoid and hrp and humanoid.Parent then
+                humanoid.Sit = true
+                hrp.CFrame *= CFrame.Angles(-h, 0, 0)
+            end
+        end)
+    end
+    task.wait(0.55)
+    if humanoid and humanoid.Parent then humanoid.Sit = false end
+end
+
+local function doBackflip()
+    local character = localPlayer.Character
+    if not character then return end
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not humanoid or not hrp or humanoid:GetState() == Enum.HumanoidStateType.Dead then return end
+
+    humanoid:ChangeState("Jumping")
+    task.wait()
+    humanoid.Sit = true
+    for i = 1, 360 do
+        task.delay(i/720, function()
+            if humanoid and hrp and humanoid.Parent then
+                humanoid.Sit = true
+                hrp.CFrame *= CFrame.Angles(h, 0, 0)
+            end
+        end)
+    end
+    task.wait(0.55)
+    if humanoid and humanoid.Parent then humanoid.Sit = false end
+end
+
+local function doAirjump()
+    local character = localPlayer.Character
+    if not character then return end
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid or humanoid:GetState() == Enum.HumanoidStateType.Dead then return end
+    
+    humanoid:ChangeState("Seated")
+    task.wait()
+    humanoid:ChangeState("Jumping")
+end
+
+local FrontflipButton = createButton("FrontflipButton", "前空翻 (Z)", 30, Color3.fromRGB(70, 70, 70))
+local BackflipButton = createButton("BackflipButton", "后空翻 (X)", 80, Color3.fromRGB(70, 70, 70))
+local AirjumpButton = createButton("AirjumpButton", "空中跳跃 (C)", 130, Color3.fromRGB(70, 70, 70))
+
+FrontflipButton.MouseButton1Click:Connect(doFrontflip)
+BackflipButton.MouseButton1Click:Connect(doBackflip)
+AirjumpButton.MouseButton1Click:Connect(doAirjump)
+
+ContextActionService:BindAction("CustomFrontflipAction", function(_, inputState)
+    if inputState == Enum.UserInputState.Begin then task.spawn(doFrontflip) end
+end, false, FrontflipKey)
+
+ContextActionService:BindAction("CustomBackflipAction", function(_, inputState)
+    if inputState == Enum.UserInputState.Begin then task.spawn(doBackflip) end
+end, false, BackflipKey)
+
+ContextActionService:BindAction("CustomAirjumpAction", function(_, inputState)
+    if inputState == Enum.UserInputState.Begin then task.spawn(doAirjump) end
+end, false, AirjumpKey)
+
+if UserInputService.TouchEnabled then
+    local touchGui = Instance.new("ScreenGui")
+    touchGui.Name = "MobileFlipButtons"
+    touchGui.Parent = localPlayer:WaitForChild("PlayerGui")
+    touchGui.ResetOnSpawn = false
+    
+    local buttonContainer = Instance.new("Frame")
+    buttonContainer.Name = "ButtonContainer"
+    buttonContainer.Size = UDim2.new(1, 0, 0, 100)
+    buttonContainer.Position = UDim2.new(0, 0, 1, -100)
+    buttonContainer.BackgroundTransparency = 1
+    buttonContainer.Parent = touchGui
+    
+    local uiListLayout = Instance.new("UIListLayout")
+    uiListLayout.FillDirection = Enum.FillDirection.Horizontal
+    uiListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    uiListLayout.Padding = UDim.new(0, 20)
+    uiListLayout.Parent = buttonContainer
+    
+    local function createMobileButton(name, text, layoutOrder, callback)
+        local button = Instance.new("TextButton")
+        button.Name = name
+        button.Size = UDim2.new(0, 120, 0, 60)
+        button.LayoutOrder = layoutOrder
+        button.Text = text
+        button.TextScaled = true
+        button.Font = Enum.Font.GothamBold
+        button.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+        button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 12)
+        corner.Parent = button
+        
+        button.MouseButton1Click:Connect(callback)
+        button.Parent = buttonContainer
+        return button
+    end
+    
+    createMobileButton("FrontflipButton", "前空翻\n(Z)", 1, doFrontflip)
+    createMobileButton("BackflipButton", "后空翻\n(X)", 2, doBackflip)
+    createMobileButton("AirjumpButton", "空中跳\n(C)", 3, doAirjump)
+end
+
+CloseButton.MouseButton1Click:Connect(function()
+    ContextActionService:UnbindAction("CustomFrontflipAction")
+    ContextActionService:UnbindAction("CustomBackflipAction")
+    ContextActionService:UnbindAction("CustomAirjumpAction")
+    
+    if FlipGUI then
+        FlipGUI:Destroy()
+    end
+    
+    local mobileGui = localPlayer.PlayerGui:FindFirstChild("MobileFlipButtons")
+    if mobileGui then
+        mobileGui:Destroy()
+    end
+end)
