@@ -1,0 +1,25 @@
+local W = Instance.new("ScreenGui", gethui())  -- 创建 GUI
+local E = Instance.new("ImageLabel", W)       -- 创建图片标签
+E.AnchorPoint = Vector2.new(.5, .5)           -- 居中
+E.Position = UDim2.new(.5, 0, .5, 0)          -- 屏幕中心
+E.Size = UDim2.new(0, 500, 0, 500)            -- 尺寸 500x500
+E.BackgroundTransparency = 1                  -- 透明背景
+E.Image = "phonto"       -- 图片 ID
+E.ImageTransparency = 1                       -- 初始透明
+
+-- 渐变显示 & 隐藏动画
+local o = game:GetService("TweenService")
+local U = TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, 0, false, 0)
+local j = {ImageTransparency = 0}  -- 完全不透明
+local e = TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, 0, false, 0)
+local J = {ImageTransparency = 1}   -- 完全透明
+
+local k = o:Create(E, U, j)  -- 渐显动画
+local T = o:Create(E, e, J)  -- 渐隐动画
+
+k:Play()            -- 播放渐显
+k.Completed:Wait()  -- 等待动画完成
+task.wait(2)        -- 等待 2 秒
+T:Play()            -- 播放渐隐
+T.Completed:Wait()  -- 等待动画完成
+W:Destroy()         -- 删除 GUI
