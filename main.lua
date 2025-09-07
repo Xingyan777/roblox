@@ -145,7 +145,7 @@ r, u=p:find":%d+: "
 warn("[ WindUI: DEBUG Mode ] "..p)
 
 return i:Notify{
-Title="错误",
+Title="错误:你链接没啦🤓",
 Content=not u and p or p:sub(u+1),
 Duration=8,
 }
@@ -2253,8 +2253,8 @@ end)
 ab.AddSignal(r.MouseButton1Click,function()
 m.Copy()
 ag.WindUI:Notify{
-Title="Key System",
-Content="Key link copied to clipboard.",
+Title="卡密系统",
+Content="卡密链接已复制到剪贴板",
 Image="key",
 }
 end)
@@ -2314,7 +2314,7 @@ if aB then
 handleSuccess(az)
 else
 ag.WindUI:Notify{
-Title="Key System. Error",
+Title="卡密系统错误😡",
 Content=aC,
 Icon="triangle-alert",
 }
@@ -9430,8 +9430,8 @@ ao:CreateTopbarButton("Close","x",function()
 ah(ao.UIElements.Main,0.35,{Position=UDim2.new(0.5,0,0.5,0)},Enum.EasingStyle.Quint,Enum.EasingDirection.Out):Play()
 ao:Dialog{
 
-Title="关闭窗口",
-Content="是否要关闭该窗口,关闭后无法再次打开",
+Title="关闭脚本",
+Content="你是否要关闭脚本，关了旧打不开了xD",
 Buttons={
 {
 Title="否",
