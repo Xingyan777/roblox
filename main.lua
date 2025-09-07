@@ -9431,7 +9431,7 @@ ah(ao.UIElements.Main,0.35,{Position=UDim2.new(0.5,0,0.5,0)},Enum.EasingStyle.Qu
 ao:Dialog{
 
 Title="关闭脚本",
-Content="你是否要关闭脚本，关了旧打不开了xD",
+Content="你是否要关闭脚本，关了就无法再打开",
 Buttons={
 {
 Title="否",
