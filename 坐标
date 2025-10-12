@@ -50,7 +50,7 @@ local function createCoordUI()
 
     copyBtn.MouseButton1Click:Connect(function()
         if setclipboard and coordSystem.currentPos then
-            local coordStr = string.format("X: %.2f, Y: %.2f, Z: %.2f",
+            local coordStr = string.format("%.2f,%.2f,%.2f",
                 coordSystem.currentPos.X,
                 coordSystem.currentPos.Y,
                 coordSystem.currentPos.Z
